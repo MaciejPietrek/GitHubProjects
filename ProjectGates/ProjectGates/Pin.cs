@@ -12,11 +12,8 @@ namespace ProjectGates
 	abstract class Pin : Connectable, Drawable, IMoveable
 	{
 		//Fields and attributes
-
 		private Sprite sprite;
-
 		private LogicEntity owner;
-		
 		public LogicEntity Owner
 		{
 			get
@@ -24,25 +21,35 @@ namespace ProjectGates
 				return owner;
 			}
 		}
-
 		//Interface IMoveable
-
-		public void MoveTo(Vector2f realocationVector)
+		public Vector2f Position
 		{
-			sprite.Position = realocationVector;
+			get
+			{
+				return sprite.Position;
+			}
+			set
+			{
+				sprite.Position = value;
+			}
 		}
-		public void MoveBy(Vector2f realocationVector)
+		public float Rotation
 		{
-			sprite.Position += realocationVector;
-		}
+			get
+			{
+				return 0;
+			}
+			set
+			{
 
+			}
+		}
 		//Constructors
-
 		protected Pin(LogicEntity owner)
 		{
 			this.owner = owner;
-			sprite = new Sprite();
-			sprite.Texture = GraphicElements.PinTextureError;
+			this.sprite = new Sprite();
+			this.sprite.Texture = GraphicElements.PinTextureError;
 		}
 		public void Draw(RenderTarget renderTarget, RenderStates renderStates)
 		{
@@ -53,7 +60,6 @@ namespace ProjectGates
 	sealed class InputPin : Pin
 	{
 		//Constructors
-
 		public InputPin(LogicEntity owner)
 			: base(owner)
 		{
@@ -64,9 +70,7 @@ namespace ProjectGates
 	sealed class OutputPin : Pin
 	{
 		LogicLevel logicLevel;
-
 		//Constructors
-
 		public OutputPin(LogicEntity owner)
 			: base(owner)
 		{

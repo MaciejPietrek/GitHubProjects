@@ -8,7 +8,7 @@ namespace ProjectGates
 {
 	interface IMoveable
 	{
-		void MoveBy(SFML.System.Vector2f realocationVector);
-		void MoveTo(SFML.System.Vector2f realocationVector);
+		SFML.System.Vector2f Position{ get; set; }
+		float Rotation { get; set; }
 	}
 }

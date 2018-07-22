@@ -14,55 +14,78 @@ namespace ProjectGates
 	class Program
 	{
 		static RenderWindow mainWindow = new RenderWindow(VideoMode.DesktopMode, "ProjectGates", Styles.Fullscreen);
-		static View mainView = new View(mainWindow.GetView());
+		static View mainView = new View(mainWindow.DefaultView);
 		static List<LogicEntity> logicEntities = new List<LogicEntity>();
 		static List<Node> nodes = new List<Node>();
-		static Grid mainGrid = new Grid(25, 25, new Color(200, 200, 200), 2);
-		static Grid nodeGrid = new Grid(5, 5, new Color(240, 240, 240), 1);
+		static Grid mainGrid = new Grid(25, 25, 2, new Color(200, 200, 200), mainWindow);
+		static Grid nodeGrid = new Grid(5, 5, 1, new Color(240, 240, 240), mainWindow);
+		static Cursor mainCursor = new Cursor(mainGrid, GraphicElements.BackgroundTexture);
+		static Cursor nodeCursor = new Cursor(nodeGrid, GraphicElements.NodeTexture);
+
+		static bool zoom = false;
+
+		static Vector2f FromPixelToGlobalCoord(Vector2f position)
+		{
+			return FromPixelToGlobalCoord(new Vector2i((int)position.X, (int)position.Y));
+		}
+		static Vector2f FromPixelToGlobalCoord(float x, float y)
+		{
+			return FromPixelToGlobalCoord(new Vector2i((int)x, (int)y));
+		}
+		static Vector2f FromPixelToGlobalCoord(Vector2i position)
+		{
+			return mainWindow.MapPixelToCoords(position);
+		}
 
 		static void OnClose(object sender, EventArgs e)
 		{
 			RenderWindow window = (RenderWindow)sender;
 			window.Close();
 		}
-
 		static void OnKeyPressed(object sender, KeyEventArgs e)
 		{
 			if (e.Code == Keyboard.Key.Escape)
 				((RenderWindow)sender).Close();
 			if (e.Code == Keyboard.Key.Left)
 			{
-				mainView.Move(new Vector2f(-25, 0));
+				mainView.Move(new Vector2f(-25 * mainView.Size.Y / VideoMode.DesktopMode.Height, 0));
 				mainWindow.SetView(mainView);
 			}
 			if (e.Code == Keyboard.Key.Right)
 			{
-				mainView.Move(new Vector2f(25, 0));
+				mainView.Move(new Vector2f(25 * mainView.Size.Y / VideoMode.DesktopMode.Height, 0));
 				mainWindow.SetView(mainView);
 			}
 			if (e.Code == Keyboard.Key.Up)
 			{
-				mainView.Move(new Vector2f(0, -25));
+				mainView.Move(new Vector2f(0, -25 * mainView.Size.X / VideoMode.DesktopMode.Width));
 				mainWindow.SetView(mainView);
 			}
 			if (e.Code == Keyboard.Key.Down)
 			{
-				mainView.Move(new Vector2f(0, 25));
+				mainView.Move(new Vector2f(0, 25 * mainView.Size.X / VideoMode.DesktopMode.Width));
 				mainWindow.SetView(mainView);
 			}
 		}
-
 		static void OnMouseScroll(object sender, MouseWheelEventArgs e)
 		{
 			if(e.Delta < 0)
 			{
-				mainView.Move(new Vector2f(9, 15));
-				mainView.Zoom(3);
+				if (!zoom)
+				{
+					mainView.Move(new Vector2f(9, 15));
+					mainView.Zoom(3);
+					zoom = !zoom;
+				}
 			}
 			else
 			{
-				mainView.Zoom((float)0.3333333333);
-				mainView.Move(new Vector2f(-9, -15));
+				if (zoom)
+				{
+					mainView.Zoom((float)0.3333333333);
+					mainView.Move(new Vector2f(-9, -15));
+					zoom = !zoom;
+				}
 			}
 			mainWindow.SetView(mainView);
 		}
@@ -70,18 +93,16 @@ namespace ProjectGates
 		{
 			if(e.Button == Mouse.Button.Left)
 			{
-				Vector2f tmp = mainWindow.MapPixelToCoords(new Vector2i(e.X, e.Y));
-
-				logicEntities.Add(new LogicEntity(2, 2, mainGrid.PositionAcordingToGrid(mainWindow, tmp), mainGrid, mainWindow));
+				logicEntities.Add(new LogicEntity(mainGrid, new Vector2f(e.X, e.Y), new Vector2i(3, 10)));
+				logicEntities.Last().Rotation = 90;
 			}
 			else if(e.Button == Mouse.Button.Right)
 			{
-				Vector2f tmp = mainWindow.MapPixelToCoords(new Vector2i(e.X, e.Y));
-				
-				nodes.Add(new Node());
-				nodes.Last().MoveTo(nodeGrid.PositionAcordingToGrid(mainWindow,tmp));
+				nodes.Add(new Node(nodeGrid, new Vector2f(e.X, e.Y)));
 			}
 		}
+		
+
 		static void Main(string[] args)
 		{
 			mainWindow.Closed				+= new EventHandler(OnClose);
@@ -89,7 +110,7 @@ namespace ProjectGates
 			mainWindow.MouseWheelMoved		+= new EventHandler<MouseWheelEventArgs>(OnMouseScroll);
 			mainWindow.MouseButtonPressed	+= new EventHandler<MouseButtonEventArgs>(OnClick);
 
-			
+			mainWindow.SetMouseCursorVisible(false);
 
 
 			while (mainWindow.IsOpen)
@@ -98,18 +119,18 @@ namespace ProjectGates
 
 
 
-				mainWindow.Clear(SFML.Graphics.Color.White);
-
-				mainWindow.SetView(mainWindow.DefaultView);
+				mainWindow.Clear(Color.White);
 				mainWindow.Draw(nodeGrid);
 				mainWindow.Draw(mainGrid);
+
 				mainWindow.SetView(mainView);
+				mainWindow.Draw(mainCursor);
+				mainWindow.Draw(nodeCursor);
 
 				for (int index = 0; index < logicEntities.Count; index++)
 					mainWindow.Draw(logicEntities[index]);
 				for (int index = 0; index < nodes.Count; index++)
 					mainWindow.Draw(nodes[index]);
-
 				mainWindow.Display();
 			}
 		}

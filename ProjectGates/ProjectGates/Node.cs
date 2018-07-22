@@ -11,10 +11,17 @@ namespace ProjectGates
 {
 	class Node : Connectable, Drawable, IMoveable
 	{
+		private Vector2f center;
+		private float rotation;
 		//Fields and attributes
-
+		private Grid grid;
 		protected Sprite sprite;
-
+		//Interface Drawable
+		public void Draw(RenderTarget renderTarget, RenderStates renderStates)
+		{
+			sprite.Draw(renderTarget, renderStates);
+		}
+		//Interface IMoveable
 		public Vector2f Position
 		{
 			get
@@ -23,34 +30,28 @@ namespace ProjectGates
 			}
 			set
 			{
-				sprite.Position = value;
+				sprite.Position = grid.OnGrid(value);
 			}
 		}
-
-		//Interface Drawable
-
-		public void Draw(RenderTarget renderTarget, RenderStates renderStates)
+		public float Rotation
 		{
-			sprite.Draw(renderTarget, renderStates);
+			get
+			{
+				return rotation;
+			}
+			set
+			{
+				float tmp = value % 360;
+				rotation = tmp;
+			}
 		}
-		
-		//Interface IMoveable
-
-		public void MoveTo(Vector2f realocationVector)
-		{
-			sprite.Position = realocationVector;
-		}
-		public void MoveBy(Vector2f realocationVector)
-		{
-			sprite.Position += realocationVector;
-		}
-
 		//Constructors
-
-		public Node()
+		public Node(Grid grid, Vector2f position)
 		{
-			sprite = new Sprite();
-			sprite.Texture = GraphicElements.NodeTexture;
+			this.grid = grid;
+			this.sprite = new Sprite();
+			this.sprite.Position = grid.OnGrid(position);
+			this.sprite.Texture = GraphicElements.NodeTexture;
 		}
 	}
 }
